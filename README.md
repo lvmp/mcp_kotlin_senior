@@ -11,6 +11,7 @@ This tool provides AI agents with specialized capabilities to analyze, generate,
   - **Clean Architecture**
   - **Hexagonal Architecture (Ports & Adapters)**
   - **Modular Monoliths**
+  - **Microservices**
 
 ### 🎨 Design Patterns
 - **`generate_design_pattern`**: Generates idiomatic Kotlin implementations of classic GoF patterns (Singleton, Strategy, Observer, Factory, etc.), ensuring thread safety and leveraging Kotlin features (e.g., `object`, `sealed class`, Coroutines).

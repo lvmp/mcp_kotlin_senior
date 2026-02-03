@@ -1,27 +1,27 @@
 import { z } from "zod";
 
 export const AnalyzeArchitectureSchema = {
-    name: "analyze_architecture",
-    description: "Analyze and suggest architectural improvements for a Kotlin project based on Clean Architecture, Hexagonal, or Monolith patterns.",
-    inputSchema: z.object({
-        projectType: z.enum(["monolith", "microservice", "library"]).describe("The type of the project."),
-        currentStructureDescription: z.string().describe("Brief description of the current folder/package structure."),
-        goal: z.enum(["clean_architecture", "hexagonal", "modular_monolith", "refactor_legacy"]).describe("The architectural goal."),
-    }),
+  name: "analyze_architecture",
+  description: "Analyze and suggest architectural improvements for a Kotlin project based on Clean Architecture, Hexagonal, or Monolith patterns.",
+  inputSchema: z.object({
+    projectType: z.enum(["monolith", "microservice", "library"]).describe("The type of the project."),
+    currentStructureDescription: z.string().describe("Brief description of the current folder/package structure."),
+    goal: z.enum(["clean_architecture", "hexagonal", "modular_monolith", "microservices", "refactor_legacy"]).describe("The architectural goal."),
+  }),
 };
 
 export function analyzeArchitecture(args: { projectType: string; currentStructureDescription: string; goal: string }) {
-    const { projectType, currentStructureDescription, goal } = args;
+  const { projectType, currentStructureDescription, goal } = args;
 
-    let advice = "";
-    let structureTemplate = "";
+  let advice = "";
+  let structureTemplate = "";
 
-    if (goal === "clean_architecture") {
-        advice = `For a ${projectType} aiming for Clean Architecture in Kotlin, strict separation of concerns is key.
+  if (goal === "clean_architecture") {
+    advice = `For a ${projectType} aiming for Clean Architecture in Kotlin, strict separation of concerns is key.
     Dependency Rule: Source code dependencies can only point inwards.
     Result: Independent of Frameworks, Testable, Independent of UI, Independent of Database.`;
 
-        structureTemplate = `
+    structureTemplate = `
     src/
       domain/          (Enterprise Business Rules - Entities)
       usecase/         (Application Business Rules)
@@ -33,12 +33,12 @@ export function analyzeArchitecture(args: { projectType: string; currentStructur
         db/
         web/
     `;
-    } else if (goal === "hexagonal") {
-        advice = `Hexagonal Architecture (Ports and Adapters) focuses on isolating the domain logic from the outside world.
+  } else if (goal === "hexagonal") {
+    advice = `Hexagonal Architecture (Ports and Adapters) focuses on isolating the domain logic from the outside world.
     Primary Ports (Driving): Use Cases / Input Ports.
     Secondary Ports (Driven): Repository Interfaces / Output Ports.`;
 
-        structureTemplate = `
+    structureTemplate = `
     src/
       domain/
         model/
@@ -53,14 +53,32 @@ export function analyzeArchitecture(args: { projectType: string; currentStructur
       application/
         service/ (Implementation of Use Cases)
     `;
-    }
+  } else if (goal === "microservices") {
+    advice = `Microservices Architecture involves decomposing the domain into small, independent services.
+    Key Principles:
+    1. Independent Deployability.
+    2. Shared Nothing (Database per Service).
+    3. API First Design.
+    
+    Kotlin fits well here with Spring Boot or Ktor/Quarkus. Focus on lightweight, fast startup containers.`;
 
-    return {
-        content: [
-            {
-                type: "text",
-                text: `### Architectural Analysis for ${projectType}\n\n**Goal**: ${goal}\n\n${advice}\n\n### Suggested Kotlin Package Structure:\n\`\`\`text${structureTemplate}\`\`\`\n\n### Kotlin Specific Tips:\n- Use \`data class\` for Domain Entities.\n- Use \`sealed class\` for Domain Errors or Result types.\n- Use Coroutines \`suspend\` functions in your Ports/UseCases for I/O operations.`
-            }
-        ]
-    };
+    structureTemplate = `
+    k8s/ (Helm charts or Kustomize)
+    src/main/kotlin/com/example/serviceName/
+      api/ (Controllers/gRPC)
+      domain/ (Core Logic)
+      data/ (Repositories/Entities)
+      config/ (DI, Environment)
+    Dockerfile
+    `;
+  }
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `### Architectural Analysis for ${projectType}\n\n**Goal**: ${goal}\n\n${advice}\n\n### Suggested Kotlin Package Structure:\n\`\`\`text${structureTemplate}\`\`\`\n\n### Kotlin Specific Tips:\n- Use \`data class\` for Domain Entities.\n- Use \`sealed class\` for Domain Errors or Result types.\n- Use Coroutines \`suspend\` functions in your Ports/UseCases for I/O operations.`
+      }
+    ]
+  };
 }
