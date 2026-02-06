@@ -1,32 +1,35 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM golang:1.23-alpine AS builder
+
+# Install CA certificates and UPX for compression
+RUN apk add --no-cache ca-certificates upx
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# Module Cache Optimization
+COPY go.mod go.sum* ./
+RUN go mod download
 
-COPY tsconfig.json ./
-COPY src ./src
+COPY . .
 
-RUN npm run build
+# Build with stripping flags for smaller binary
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo \
+    -ldflags="-s -w -extldflags '-static'" \
+    -o mcp-server main.go
 
-# Stage 2: Production
-FROM node:20-alpine AS runner
+# Extreme compression with UPX
+RUN upx -9 mcp-server
+
+# Stage 2: Final (Zero-size base)
+FROM scratch
+
+# Copy certificates for external API calls
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 WORKDIR /app
 
-# Install production dependencies only
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Copy only the compiled binary
+COPY --from=builder /app/mcp-server .
 
-# Copy built artifacts
-COPY --from=builder /app/dist ./dist
-
-# Set permissions
-USER node
-
-# Expose functionality (MCP runs on stdio, so no headers usually, but good practice)
-ENV NODE_ENV=production
-
-ENTRYPOINT ["node", "dist/index.js"]
+# Run the binary
+ENTRYPOINT ["./mcp-server"]

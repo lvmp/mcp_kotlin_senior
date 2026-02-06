@@ -32,17 +32,25 @@ This tool provides AI agents with specialized capabilities to analyze, generate,
 
 ## Technology Stack
 
-- **Language**: TypeScript (Node.js) - Chosen for high I/O performance, low latency, and lightweight resource footprint compared to a JVM-based MCP server.
-- **Runtime**: Node.js 20+
-- **Distribution**: Docker (Alpine/Distroless)
+- **Language**: Go (Golang) - Migrated from TypeScript for superior performance, binary distribution, and minimal footprint.
+- **SDK**: `github.com/mark3labs/mcp-go`
+- **Distribution**: Docker (Extreme Scratch/UPX Optimization)
+
+## 🚀 Docker Optimization
+
+The Go implementation is built for extreme efficiency:
+- **Build Stage**: Multi-stage build with static binary compilation.
+- **Compression**: UPX extreme compression (-9).
+- **Final Stage**: `FROM scratch` (0 bytes base image).
+- **Result**: Final image size is approximately **3.6MB** (Reduced from ~227MB in the TS version).
 
 ## Usage
 
 ### Docker (Recommended)
 
-1. **Build the Image**
+1. **Pull the Image**
    ```bash
-   docker build -t mcp-kotlin-senior .
+   docker pull lvmp7/mcp-kotlin-senior:latest
    ```
 
 2. **Run via MCP**
@@ -52,7 +60,7 @@ This tool provides AI agents with specialized capabilities to analyze, generate,
      "mcpServers": {
        "kotlin-senior": {
          "command": "docker",
-         "args": ["run", "-i", "--rm", "mcp-kotlin-senior"]
+         "args": ["run", "-i", "--rm", "lvmp7/mcp-kotlin-senior:latest"]
        }
      }
    }
@@ -60,21 +68,32 @@ This tool provides AI agents with specialized capabilities to analyze, generate,
 
 ## Development
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+1. **Prerequisites**
+   - Go 1.23+
 
-2. **Build**
+2. **Initialize & Build**
    ```bash
-   npm run build
+   go mod download
+   go build -o mcp-server main.go
    ```
 
 3. **Run Locally**
    ```bash
-   npm start
+   ./mcp-server
    ```
+
+4. **Deploy (Docker)**
+   Use the provided PowerShell script:
+   ```powershell
+   .\push_docker.ps1
+   ```
+
+## Versions
+- **v1.0.0**: Original TypeScript implementation.
+- **v2.0.0**: Migrated to Go with extreme Docker optimization (Current).
+- **latest**: Points to the latest Go implementation.
 
 ## License
 
 MIT
+
